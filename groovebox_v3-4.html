@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GROOVEBOX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0D0D0F;
+  --bg2:#161619;
+  --card:#202024;
+  --border:#303036;
+  --text:#F4F1EA;
+  --text2:#9B9B9F;
+  --orange:#E86A33;
+  --gold:#E5B94B;
+  --radius:3px;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; height:100%;}
+body{padding-bottom:64px;}
+a{color:inherit; text-decoration:none;}
+button{font-family:inherit; cursor:pointer; border:none; background:none; color:inherit;}
+img{max-width:100%; display:block;}
+.serif{font-family:'Libre Baskerville', serif;}
+::selection{background:var(--orange); color:#0D0D0F;}
+::-webkit-scrollbar{width:8px; height:8px;}
+::-webkit-scrollbar-thumb{background:var(--border); border-radius:4px;}
+
+/* ---------- layout shells ---------- */
+#app{max-width:1180px; margin:0 auto; padding:0 20px;}
+.only-mobile{display:none;}
+@media (max-width:820px){
+  .only-desktop{display:none !important;}
+  .only-mobile{display:flex !important;}
+  #app{padding:0 14px;}
+}
+
+/* ---------- header (desktop) ---------- */
+header.top{
+  position:sticky; top:0; z-index:50;
+  background:rgba(13,13,15,.88); backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);
+}
+.top-inner{
+  max-width:1180px; margin:0 auto; padding:14px 20px;
+  display:flex; align-items:center; gap:28px;
+}
+.logo{
+  font-family:'Libre Baskerville', serif; font-weight:700; font-size:19px;
+  letter-spacing:.5px; color:var(--text); white-space:nowrap;
+  display:flex; align-items:center; gap:8px;
+}
+.logo .dot{width:8px; height:8px; border-radius:50%; background:var(--orange); display:inline-block;}
+nav.primary{display:flex; gap:22px; flex:1;}
+nav.primary a{
+  font-size:14px; font-weight:600; color:var(--text2); padding:6px 2px;
+  border-bottom:2px solid transparent; transition:color .15s;
+}
+nav.primary a:hover{color:var(--text);}
+nav.primary a.active{color:var(--text); border-bottom-color:var(--orange);}
+.search-box{
+  display:flex; align-items:center; gap:8px;
+  background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius);
+  padding:8px 12px; width:260px; color:var(--text2);
+}
+.search-box input{
+  background:none; border:none; outline:none; color:var(--text); font-size:13px; width:100%;
+}
+.avatar{
+  width:32px; height:32px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Libre Baskerville',serif; font-weight:700; font-size:13px; color:#0D0D0F;
+}
+
+/* ---------- mobile bottom nav ---------- */
+nav.mobile{
+  position:fixed; bottom:0; left:0; right:0; z-index:50;
+  background:rgba(22,22,25,.96); backdrop-filter:blur(10px);
+  border-top:1px solid var(--border);
+  padding:8px 6px 10px;
+  justify-content:space-around; align-items:center;
+}
+nav.mobile a{
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  font-size:10px; color:var(--text2); font-weight:600;
+}
+nav.mobile a.active{color:var(--orange);}
+nav.mobile svg{width:20px; height:20px;}
+
+/* ---------- section basics ---------- */
+.view{padding:26px 0 60px;}
+.section-head{display:flex; align-items:baseline; justify-content:space-between; margin:34px 0 14px;}
+.section-title{font-family:'Libre Baskerville', serif; font-size:20px; font-weight:700;}
+.section-sub{font-size:12px; color:var(--text2);}
+.page-title{font-family:'Libre Baskerville', serif; font-size:30px; font-weight:700; margin-bottom:6px;}
+
+/* ---------- carousel / grid ---------- */
+.hscroll{display:flex; gap:16px; overflow-x:auto; padding:4px 2px 14px; scroll-snap-type:x mandatory;}
+.hscroll::-webkit-scrollbar{display:none;}
+.grid{display:grid; grid-template-columns:repeat(6,1fr); gap:16px;}
+@media (max-width:1024px){.grid{grid-template-columns:repeat(3,1fr);}}
+@media (max-width:480px){.grid{grid-template-columns:repeat(2,1fr);}}
+
+/* ---------- album cover (generated art) ---------- */
+.cover{
+  position:relative; aspect-ratio:1/1; border-radius:2px; overflow:hidden;
+  display:flex; align-items:flex-end; padding:10px;
+  box-shadow:0 10px 24px -12px rgba(0,0,0,.6);
+}
+.cover .initials{
+  font-family:'Libre Baskerville', serif; font-weight:700; font-size:13px;
+  color:rgba(244,241,234,.92); text-shadow:0 1px 3px rgba(0,0,0,.4);
+}
+.cover .vinyl{
+  position:absolute; right:-24px; top:50%; transform:translateY(-50%);
+  width:70%; aspect-ratio:1/1; border-radius:50%;
+  background:radial-gradient(circle at center, #0D0D0F 0 14%, #1c1c1f 15% 16%, transparent 17%),
+             repeating-radial-gradient(circle, rgba(0,0,0,.35) 0 2px, transparent 2px 5px);
+  opacity:0; transition:opacity .25s, right .25s; pointer-events:none;
+}
+.album-card{scroll-snap-align:start; flex:0 0 148px; cursor:pointer;}
+.album-card .cover{width:148px; height:148px;}
+.grid .album-card{width:100%;}
+.grid .album-card .cover{width:100%; height:auto;}
+.album-card:hover .cover .vinyl{opacity:1; right:-14px;}
+.album-card:hover .cover{transform:translateY(-2px);}
+.album-name{font-size:13px; font-weight:600; margin-top:9px; line-height:1.3;}
+.album-artist{font-size:12px; color:var(--text2); margin-top:2px;}
+.album-meta{font-size:11px; color:var(--gold); margin-top:4px; display:flex; align-items:center; gap:4px;}
+.quick-actions{
+  display:flex; gap:6px; position:absolute; bottom:8px; left:8px; right:8px;
+  opacity:0; transition:opacity .2s;
+}
+.album-card:hover .quick-actions{opacity:1;}
+.qa-btn{
+  background:rgba(13,13,15,.75); border:1px solid rgba(244,241,234,.25); color:var(--text);
+  font-size:10px; padding:5px 6px; border-radius:2px; flex:1; text-align:center; font-weight:600;
+}
+.qa-btn:hover{background:var(--orange); border-color:var(--orange);}
+
+/* ---------- stars ---------- */
+.stars{color:var(--gold); font-size:13px; letter-spacing:1px; white-space:nowrap;}
+.star-select{display:inline-flex; gap:3px; cursor:pointer; font-size:26px; color:var(--border);}
+.star-select .on{color:var(--gold);}
+
+/* ---------- genre pills ---------- */
+.genres{display:flex; flex-wrap:wrap; gap:10px;}
+.genre-pill{
+  border:1px solid var(--border); padding:16px 20px; border-radius:2px; font-size:13px; font-weight:600;
+  background:var(--bg2); flex:1 1 130px; text-align:center; transition:border-color .15s, color .15s;
+}
+.genre-pill:hover{border-color:var(--orange); color:var(--orange);}
+
+/* ---------- feed / activity cards ---------- */
+.feed-card{
+  display:flex; gap:14px; padding:18px 0; border-bottom:1px solid var(--border);
+}
+.feed-card .avatar{width:36px; height:36px; font-size:14px;}
+.feed-line{font-size:13px; margin-bottom:8px;}
+.feed-line b{font-weight:700;}
+.feed-time{color:var(--text2); font-size:11px;}
+.feed-body{flex:1; min-width:0;}
+.feed-cover-row{display:flex; gap:12px; align-items:flex-start;}
+.feed-cover-row .cover{width:64px; height:64px; flex-shrink:0;}
+.feed-cover-row .cover .initials{font-size:10px;}
+.feed-album{font-weight:700; font-size:14px;}
+.feed-artist{color:var(--text2); font-size:12px; margin-bottom:4px;}
+.feed-review{font-family:'Libre Baskerville', serif; font-style:italic; font-size:14px; line-height:1.5; color:#E9E6DE; margin-top:6px;}
+.feed-actions{display:flex; gap:16px; margin-top:10px; font-size:12px; color:var(--text2);}
+.feed-actions span{display:flex; align-items:center; gap:5px; cursor:pointer;}
+.feed-actions span:hover{color:var(--text);}
+.feed-actions .liked{color:var(--orange);}
+.compact-activity{display:flex; gap:10px; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); font-size:13px;}
+.compact-activity .avatar{width:26px; height:26px; font-size:11px;}
+
+/* ---------- buttons ---------- */
+.btn{
+  padding:11px 18px; border-radius:2px; font-size:12px; font-weight:700; letter-spacing:.3px;
+  display:inline-flex; align-items:center; gap:7px; border:1px solid var(--border);
+}
+.btn-primary{background:var(--orange); border-color:var(--orange); color:#0D0D0F;}
+.btn-primary:hover{background:#f0794a;}
+.btn-ghost{background:transparent; color:var(--text);}
+.btn-ghost:hover{border-color:var(--text2);}
+.btn-gold{border-color:var(--gold); color:var(--gold);}
+.btn-follow{background:var(--text); color:#0D0D0F; border-color:var(--text);}
+.btn-follow.following{background:transparent; color:var(--text2); border-color:var(--border);}
+.btn-sm{padding:7px 12px; font-size:11px;}
+
+/* ---------- album page ---------- */
+.album-hero{display:flex; gap:36px; margin-bottom:10px;}
+.album-hero .cover{width:280px; height:280px; flex-shrink:0;}
+.album-hero .cover .initials{font-size:20px;}
+@media (max-width:820px){.album-hero{flex-direction:column; gap:18px;} .album-hero .cover{width:100%; height:auto; aspect-ratio:1/1;}}
+.ah-artist{font-size:16px; color:var(--text2); margin:6px 0 4px;}
+.ah-meta{font-size:13px; color:var(--text2); margin-bottom:14px;}
+.ah-rating{display:flex; align-items:center; gap:10px; margin-bottom:6px;}
+.ah-rating .num{font-family:'Libre Baskerville', serif; font-size:22px; color:var(--gold); font-weight:700;}
+.ah-counts{font-size:12px; color:var(--text2); margin-bottom:20px;}
+.ah-btns{display:flex; flex-wrap:wrap; gap:10px;}
+
+.tracklist{margin-top:8px;}
+.track-row{
+  display:flex; align-items:center; gap:14px; padding:11px 4px; border-bottom:1px solid var(--border);
+  font-size:13px;
+}
+.track-num{color:var(--text2); width:20px; flex-shrink:0;}
+.track-title{flex:1; font-weight:500;}
+.track-dur{color:var(--text2); font-size:12px; width:40px; text-align:right;}
+.track-actions{display:flex; align-items:center; gap:10px; opacity:0; transition:opacity .15s;}
+.track-row:hover .track-actions{opacity:1;}
+.track-my-rating{color:var(--orange); font-size:11px; font-weight:700; width:50px; text-align:right;}
+
+.review-card{padding:20px 0; border-bottom:1px solid var(--border);}
+.review-head{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
+.review-name{font-weight:700; font-size:13px;}
+.review-date{font-size:11px; color:var(--text2);}
+.review-actions{display:flex; gap:18px; margin-top:12px; font-size:12px; color:var(--text2);}
+.review-actions span{cursor:pointer;}
+.review-actions span:hover{color:var(--text);}
+
+/* ---------- profile ---------- */
+.profile-head{display:flex; gap:24px; align-items:center; margin-bottom:22px; flex-wrap:wrap;}
+.profile-head .avatar{width:88px; height:88px; font-size:30px;}
+.profile-name{font-family:'Libre Baskerville', serif; font-size:24px; font-weight:700;}
+.profile-handle{color:var(--text2); font-size:13px; margin-bottom:8px;}
+.profile-bio{font-size:13px; color:#cfcdc7; max-width:420px; margin-bottom:10px;}
+.profile-stats{display:flex; gap:22px; font-size:13px;}
+.profile-stats b{display:block; font-size:15px;}
+.profile-stats span{color:var(--text2); font-size:11px;}
+.favorites-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px;}
+@media (max-width:600px){.favorites-grid{grid-template-columns:repeat(2,1fr);}}
+.stat-cards{display:grid; grid-template-columns:repeat(4,1fr); gap:14px;}
+@media (max-width:700px){.stat-cards{grid-template-columns:repeat(2,1fr);}}
+.stat-card{background:var(--bg2); border:1px solid var(--border); padding:16px; border-radius:2px;}
+.stat-card .num{font-family:'Libre Baskerville',serif; font-size:24px; font-weight:700; color:var(--gold);}
+.stat-card .lab{font-size:11px; color:var(--text2); margin-top:3px;}
+
+/* ---------- diary ---------- */
+.diary-group{margin-bottom:26px;}
+.diary-month{font-family:'Libre Baskerville', serif; font-size:15px; color:var(--text2); margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid var(--border);}
+.diary-row{display:flex; align-items:center; gap:14px; padding:12px 0; border-bottom:1px solid var(--border);}
+.diary-day{width:26px; font-size:13px; color:var(--text2); flex-shrink:0;}
+.diary-row .cover{width:52px; height:52px; flex-shrink:0;}
+.diary-row .cover .initials{font-size:9px;}
+.diary-info{flex:1; min-width:0;}
+.diary-fav{font-size:11px; color:var(--text2); margin-top:2px;}
+.diary-actions{display:flex; gap:12px; font-size:11px; color:var(--text2);}
+.diary-actions span{cursor:pointer;}
+.diary-actions span:hover{color:var(--orange);}
+.filter-row{display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;}
+.filter-chip{border:1px solid var(--border); padding:7px 13px; font-size:12px; border-radius:20px; color:var(--text2); cursor:pointer;}
+.filter-chip.active{border-color:var(--orange); color:var(--orange);}
+
+/* ---------- search ---------- */
+.search-hero-input{
+  width:100%; padding:16px 18px; font-size:16px; background:var(--bg2); border:1px solid var(--border);
+  color:var(--text); border-radius:2px; outline:none;
+}
+.search-hero-input:focus{border-color:var(--orange);}
+.tab-row{display:flex; gap:24px; margin:18px 0 20px; border-bottom:1px solid var(--border);}
+.tab{padding-bottom:10px; font-size:13px; font-weight:700; color:var(--text2); border-bottom:2px solid transparent; cursor:pointer;}
+.tab.active{color:var(--text); border-color:var(--orange);}
+.result-row{display:flex; align-items:center; gap:14px; padding:11px 0; border-bottom:1px solid var(--border);}
+.result-row .cover{width:44px; height:44px; flex-shrink:0;}
+.result-row .cover .initials{font-size:8px;}
+.result-title{font-size:13px; font-weight:600;}
+.result-sub{font-size:11px; color:var(--text2);}
+.result-row .avatar{width:44px; height:44px;}
+
+/* ---------- empty states ---------- */
+.empty{text-align:center; padding:60px 20px; color:var(--text2);}
+.empty .serif{font-size:18px; color:var(--text); margin-bottom:6px; display:block;}
+
+/* ---------- modal ---------- */
+.overlay{position:fixed; inset:0; background:rgba(0,0,0,.65); backdrop-filter:blur(2px); z-index:100; display:flex; align-items:center; justify-content:center; padding:16px;}
+.modal{background:var(--card); border:1px solid var(--border); border-radius:3px; width:100%; max-width:420px; max-height:88vh; overflow-y:auto; padding:24px;}
+.modal-title{font-family:'Libre Baskerville', serif; font-size:18px; font-weight:700; margin-bottom:18px;}
+.field{margin-bottom:16px;}
+.field label{display:block; font-size:11px; color:var(--text2); margin-bottom:6px; font-weight:600;}
+.field input[type=date], .field select, .field textarea{
+  width:100%; background:var(--bg2); border:1px solid var(--border); color:var(--text); padding:10px 12px;
+  border-radius:2px; font-family:inherit; font-size:13px; outline:none;
+}
+.field textarea{min-height:80px; resize:vertical;}
+.field input:focus, .field select:focus, .field textarea:focus{border-color:var(--orange);}
+.checkbox-row{display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:18px;}
+.modal-close{position:absolute; margin-left:calc(100% - 30px); margin-top:-8px; font-size:20px; color:var(--text2); cursor:pointer;}
+.modal-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:6px;}
+
+/* ---------- toast ---------- */
+#toast{
+  position:fixed; bottom:80px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:var(--text); color:#0D0D0F; padding:12px 20px; border-radius:3px; font-size:13px; font-weight:600;
+  opacity:0; transition:opacity .25s, transform .25s; z-index:200; pointer-events:none;
+}
+#toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+@media (min-width:821px){#toast{bottom:24px;}}
+
+.breadcrumb{font-size:12px; color:var(--text2); margin-bottom:16px; cursor:pointer;}
+.breadcrumb:hover{color:var(--text);}
+
+/* ================= v2: hero, richer covers, streak, tutorial ================= */
+.page-title{font-size:34px; letter-spacing:-.3px;}
+.section-title{font-size:21px;}
+h1,h2,h3{font-family:'Libre Baskerville', serif;}
+
+/* --- hero spotlight (Home) --- */
+.hero-spot{
+  position:relative; display:flex; align-items:center; gap:40px;
+  border:1px solid var(--border); border-radius:4px; overflow:hidden;
+  padding:34px; margin-bottom:8px; min-height:230px;
+}
+.hero-spot .cover{width:170px; height:170px; flex-shrink:0; box-shadow:0 20px 40px -14px rgba(0,0,0,.7);}
+.hero-eyebrow{font-size:12px; color:var(--gold); font-weight:700; margin-bottom:10px;}
+.hero-title{font-family:'Libre Baskerville', serif; font-size:36px; font-weight:700; line-height:1.1; margin-bottom:8px;}
+.hero-sub{font-size:14px; color:var(--text2); margin-bottom:18px; max-width:420px;}
+@media (max-width:700px){
+  .hero-spot{flex-direction:column; align-items:flex-start; gap:18px; padding:22px;}
+  .hero-spot .cover{width:120px; height:120px;}
+  .hero-title{font-size:26px;}
+}
+
+/* --- richer generated cover art --- */
+.cover{background-size:cover;}
+.cover .art-shape{position:absolute; border-radius:50%; mix-blend-mode:screen; filter:blur(1px);}
+.cover .art-grain{
+  position:absolute; inset:0; opacity:.16; pointer-events:none;
+  background-image:radial-gradient(rgba(255,255,255,.7) .6px, transparent .6px);
+  background-size:5px 5px;
+}
+.cover .art-band{position:absolute; left:0; right:0; mix-blend-mode:overlay;}
+.cover .initials{position:relative; z-index:2; letter-spacing:.5px;}
+
+/* --- streak / xp badge --- */
+.streak-badge{
+  display:flex; align-items:center; gap:5px; font-size:12px; font-weight:700; color:var(--gold);
+  border:1px solid var(--border); padding:6px 10px; border-radius:20px; background:var(--bg2); white-space:nowrap;
+}
+.streak-badge .flame{filter:drop-shadow(0 0 4px rgba(229,185,75,.5));}
+.xp-toast{color:var(--gold);}
+
+/* --- write review CTA --- */
+.review-cta{
+  display:flex; align-items:center; gap:14px; border:1px dashed var(--border); border-radius:3px;
+  padding:16px 18px; margin:6px 0 20px; cursor:pointer; transition:border-color .15s, background .15s;
+}
+.review-cta:hover{border-color:var(--orange); background:rgba(232,106,51,.06);}
+.review-cta .rc-icon{
+  width:38px; height:38px; border-radius:50%; background:var(--orange); color:#0D0D0F; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700;
+}
+.review-cta .rc-text b{display:block; font-size:14px;}
+.review-cta .rc-text span{font-size:12px; color:var(--text2);}
+.fab{
+  position:fixed; right:20px; bottom:78px; z-index:60; width:52px; height:52px; border-radius:50%;
+  background:var(--orange); color:#0D0D0F; font-size:26px; font-weight:700; display:flex; align-items:center;
+  justify-content:center; box-shadow:0 10px 24px -8px rgba(232,106,51,.6);
+}
+@media (min-width:821px){.fab{bottom:28px;}}
+
+/* --- onboarding tutorial --- */
+.tut-overlay{position:fixed; inset:0; background:rgba(6,6,7,.86); z-index:500; display:flex; align-items:center; justify-content:center; padding:20px;}
+.tut-card{background:var(--card); border:1px solid var(--border); border-radius:4px; max-width:420px; width:100%; padding:30px; position:relative;}
+.tut-step-icon{width:46px; height:46px; border-radius:50%; background:rgba(232,106,51,.14); color:var(--orange); display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:18px;}
+.tut-title{font-family:'Libre Baskerville', serif; font-size:20px; font-weight:700; margin-bottom:10px;}
+.tut-text{font-size:13px; color:#cfcdc7; line-height:1.6; margin-bottom:22px;}
+.tut-dots{display:flex; gap:6px; margin-bottom:22px;}
+.tut-dots span{width:6px; height:6px; border-radius:50%; background:var(--border);}
+.tut-dots span.on{background:var(--orange); width:18px; border-radius:4px;}
+.tut-actions{display:flex; justify-content:space-between; align-items:center;}
+.tut-count{font-size:11px; color:var(--text2);}
+
+/* ================= v3: visual polish & photographic catalog ================= */
+body{background:
+  radial-gradient(circle at 15% -10%, rgba(232,106,51,.11), transparent 28%),
+  radial-gradient(circle at 92% 6%, rgba(229,185,75,.07), transparent 25%),
+  var(--bg);}
+header.top{box-shadow:0 10px 35px rgba(0,0,0,.18);}
+.logo{font-size:20px; letter-spacing:1.2px;}
+.logo .dot{box-shadow:0 0 18px rgba(232,106,51,.75);}
+.hero-spot{border-color:rgba(255,255,255,.08); box-shadow:0 24px 70px -42px rgba(0,0,0,.95);}
+.hero-spot:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,8,10,.12),rgba(8,8,10,.38));pointer-events:none;}
+.hero-spot>*{position:relative;z-index:2;}
+.album-card .cover{transition:transform .22s ease, box-shadow .22s ease; background:#171719;}
+.album-card:hover .cover{transform:translateY(-4px) scale(1.015);box-shadow:0 18px 34px -14px rgba(0,0,0,.8);}
+.cover-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;filter:saturate(.9) contrast(1.03);transition:transform .35s ease,filter .35s ease;}
+.album-card:hover .cover-photo{transform:scale(1.035);filter:saturate(1.05) contrast(1.06);}
+.cover:after{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,transparent 54%,rgba(0,0,0,.66) 100%);pointer-events:none;}
+.cover .art-grain,.cover .art-shape,.cover .art-band{z-index:0;}
+.cover .vinyl{z-index:3;}
+.cover .initials{z-index:4;background:rgba(10,10,12,.52);backdrop-filter:blur(6px);padding:4px 6px;border-radius:2px;}
+.grid{gap:20px 16px;}
+.album-name{font-size:13.5px;}
+.album-meta .stars{font-size:12px;}
+.genre-pill{border-radius:999px;padding:12px 18px;background:rgba(255,255,255,.025);}
+.genre-pill:hover{background:rgba(232,106,51,.08);}
+.search-box,.search-hero-input,.modal{box-shadow:inset 0 1px 0 rgba(255,255,255,.025);}
+.result-row{transition:background .15s ease,padding .15s ease;border-radius:4px;}
+.result-row:hover{background:rgba(255,255,255,.025);padding-left:8px;padding-right:8px;}
+.btn{transition:transform .15s ease,background .15s ease,border-color .15s ease;}
+.btn:hover{transform:translateY(-1px);}
+.catalog-banner{display:flex;justify-content:space-between;gap:18px;align-items:center;padding:18px 20px;margin:18px 0 4px;border:1px solid var(--border);background:linear-gradient(135deg,rgba(232,106,51,.08),rgba(229,185,75,.035));border-radius:4px;}
+.catalog-banner b{font-family:'Libre Baskerville',serif;font-size:16px;}
+.catalog-banner span{display:block;color:var(--text2);font-size:12px;margin-top:4px;}
+.catalog-count{font-family:'Libre Baskerville',serif;font-weight:700;color:var(--gold);font-size:22px;white-space:nowrap;}
+@media(max-width:600px){.catalog-banner{align-items:flex-start}.catalog-count{font-size:18px}.hero-spot{padding:18px}.section-head{margin-top:28px}}
+
+</style>
+</head>
+<body>
+
+<header class="top only-desktop">
+  <div class="top-inner">
+    <a class="logo" href="#/home"><span class="dot"></span>GROOVEBOX</a>
+    <nav class="primary" id="navPrimary">
+      <a data-route="home">Home</a>
+      <a data-route="discover">Discover</a>
+      <a data-route="diary">Diary</a>
+    </nav>
+    <div class="search-box" id="headerSearchBox">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="headerSearchInput" placeholder="Search albums, songs or artists...">
+    </div>
+    <div class="streak-badge" id="streakBadgeDesktop" title="Racha de escucha"><span class="flame">🔥</span><span id="streakCountDesktop">0</span></div>
+    <a href="#/profile/me"><div class="avatar" id="headerAvatar"></div></a>
+  </div>
+</header>
+
+<div class="only-mobile" style="position:sticky; top:0; z-index:49; background:rgba(13,13,15,.92); backdrop-filter:blur(10px); border-bottom:1px solid var(--border); padding:12px 14px; align-items:center; justify-content:space-between;">
+  <a class="logo" href="#/home" style="font-size:16px;"><span class="dot"></span>GROOVEBOX</a>
+  <div class="streak-badge" id="streakBadgeMobile"><span class="flame">🔥</span><span id="streakCountMobile">0</span></div>
+</div>
+
+<div id="app"><div class="view" id="view"></div></div>
+
+<nav class="mobile only-mobile" id="navMobile">
+  <a data-route="home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+    Home</a>
+  <a data-route="discover">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+    Discover</a>
+  <a data-route="diary">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="1"/><path d="M3 9h18M8 3v3M16 3v3"/></svg>
+    Diary</a>
+  <a data-route="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    Search</a>
+  <a data-route="profile/me">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+    Profile</a>
+</nav>
+
+<div id="modalRoot"></div>
+<div id="toast"></div>
+<button class="fab" id="fabWrite" title="Write a review" onclick="openQuickReview()">✎</button>
+
+<script>
+/* ============================= MOCK CATALOG ============================= */
+const GENRES = ["Rock","Alternative","Hip-Hop","Jazz","Electronic","Pop","Metal","R&B","Indie","Folk","Soul"];
+
+function hashStr(s){let h=0; for(let i=0;i<s.length;i++){h=(h<<5)-h+s.charCodeAt(i); h|=0;} return Math.abs(h);}
+function hueFromString(s){return hashStr(s)%360;}
+function coverStyle(title){
+  const h = hueFromString(title);
+  const h2 = (h+38)%360;
+  return `background:linear-gradient(155deg, hsl(${h} 46% 22%) 0%, hsl(${h2} 60% 14%) 60%, hsl(${h} 30% 8%) 100%);`;
+}
+function initialsOf(t){return t.split(" ").filter(w=>w.length).slice(0,3).map(w=>w[0]).join("").toUpperCase();}
+
+/* Generative "album art": each cover is procedurally composed from the title/artist hash so
+   every record gets a distinct, poster-like abstract identity — no real artwork is reproduced. */
+const ART_MOTIFS = ["orbit","stripes","horizon","shards","field"];
+function coverArtHTML(seed){
+  const h1 = hashStr(seed);
+  const h2 = hashStr(seed+"x");
+  const hue = h1%360;
+  const hue2 = (hue + 34 + (h2%40))%360;
+  const hue3 = (hue + 200 + (h1%30))%360;
+  const motif = ART_MOTIFS[h1%ART_MOTIFS.length];
+  let shapes = "";
+  if(motif==="orbit"){
+    shapes = `<div class="art-shape" style="width:120%;height:120%;left:${-20+h2%30}%;top:${-30+h1%40}%;background:radial-gradient(circle, hsla(${hue3},80%,60%,.55), transparent 60%);"></div>
+      <div class="art-shape" style="width:55%;height:55%;right:${-10+h1%20}%;bottom:${-15+h2%25}%;background:radial-gradient(circle, hsla(${hue2},75%,55%,.5), transparent 65%);"></div>`;
+  } else if(motif==="stripes"){
+    shapes = `<div class="art-band" style="top:${20+h1%15}%; height:${10+h2%14}px; background:hsla(${hue2},70%,55%,.55); transform:rotate(${-8+h1%16}deg);"></div>
+      <div class="art-band" style="top:${50+h2%20}%; height:${6+h1%10}px; background:hsla(${hue3},70%,60%,.4); transform:rotate(${-8+h2%16}deg);"></div>
+      <div class="art-shape" style="width:60%;height:60%;right:-15%;top:-15%;background:radial-gradient(circle, hsla(${hue},70%,55%,.35), transparent 70%);"></div>`;
+  } else if(motif==="horizon"){
+    shapes = `<div class="art-shape" style="width:140%;height:80%;left:-20%;bottom:-40%;border-radius:50%;background:radial-gradient(circle, hsla(${hue2},75%,55%,.6), transparent 65%);"></div>
+      <div class="art-band" style="top:${30+h1%20}%; height:2px; background:hsla(${hue3},60%,75%,.5);"></div>`;
+  } else if(motif==="shards"){
+    shapes = `<div class="art-shape" style="width:70%;height:70%;left:${-10+h1%25}%;top:${-20+h2%30}%;border-radius:20%;transform:rotate(${h1%45}deg);background:linear-gradient(135deg, hsla(${hue2},70%,55%,.55), transparent 70%);"></div>
+      <div class="art-shape" style="width:45%;height:45%;right:${-5+h2%20}%;bottom:${-10+h1%25}%;border-radius:30%;transform:rotate(${h2%60}deg);background:linear-gradient(135deg, hsla(${hue3},70%,60%,.5), transparent 70%);"></div>`;
+  } else {
+    shapes = `<div class="art-shape" style="width:90%;height:90%;left:${5+h1%15}%;top:${5+h2%15}%;background:radial-gradient(circle, hsla(${hue2},70%,55%,.45) 0%, transparent 55%);"></div>
+      <div class="art-shape" style="width:40%;height:40%;right:10%;bottom:10%;background:radial-gradient(circle, hsla(${hue3},75%,60%,.5), transparent 65%);"></div>
+      <div class="art-shape" style="width:22%;height:22%;left:12%;bottom:16%;background:radial-gradient(circle, hsla(${hue},80%,65%,.55), transparent 70%);"></div>`;
+  }
+  return `<div class="art-grain"></div>${shapes}`;
+}
+function coverPhotoURL(title){
+  const al = (typeof ALBUMS!=="undefined") ? ALBUMS.find(a=>a.title===title) : null;
+  const seed = encodeURIComponent((al?.id || title).toLowerCase().replace(/[^a-z0-9]+/g,'-'));
+  // Remote photographic artwork for the prototype; generated CSS remains as a graceful fallback.
+  return `https://picsum.photos/seed/groovebox-${seed}/700/700`;
+}
+function coverHTML(title, extraClass, seedExtra){
+  const seed = title + (seedExtra||"");
+  const src = coverPhotoURL(title);
+  return `<div class="cover ${extraClass||''}" style="${coverStyle(title)}; position:relative;">
+    ${coverArtHTML(seed)}
+    <img class="cover-photo" src="${src}" alt="Cover for ${escapeHTML(title)}" loading="lazy" onerror="this.style.display='none'">
+    <div class="vinyl"></div>
+    <div class="initials">${initialsOf(title)}</div>
+  </div>`;
+}
+function avatarStyle(name){
+  const h = hueFromString(name);
+  return `background:hsl(${h} 55% 62%);`;
+}
+function avatarHTML(name, size){
+  return `<div class="avatar" style="${avatarStyle(name)}">${(name||'?')[0].toUpperCase()}</div>`;
+}
+
+const ARTISTS = [
+  {id:"a1", name:"Radiohead"},
+  {id:"a2", name:"Frank Ocean"},
+  {id:"a3", name:"Tame Impala"},
+  {id:"a4", name:"Daft Punk"},
+  {id:"a5", name:"Tyler, The Creator"},
+  {id:"a6", name:"Sade"},
+  {id:"a7", name:"Boards of Canada"},
+  {id:"a8", name:"King Krule"},
+  {id:"a9", name:"Alice Coltrane"},
+  {id:"a10", name:"Death Grips"},
+  {id:"a11", name:"Mitski"},
+  {id:"a12", name:"Fleetwood Mac"},
+  {id:"a13", name:"Kendrick Lamar"},
+  {id:"a14", name:"SZA"},
+  {id:"a15", name:"Kali Uchis"},
+  {id:"a16", name:"Arctic Monkeys"},
+  {id:"a17", name:"Amy Winehouse"},
+  {id:"a18", name:"Kanye West"},
+  {id:"a19", name:"Beyoncé"},
+  {id:"a20", name:"The Beatles"},
+  {id:"a21", name:"Nirvana"},
+  {id:"a22", name:"Billie Eilish"},
+  {id:"a23", name:"Bon Iver"},
+  {id:"a24", name:"Vampire Weekend"},
+  {id:"a25", name:"Portishead"},
+  {id:"a26", name:"Massive Attack"},
+  {id:"a27", name:"J Dilla"},
+  {id:"a28", name:"Pink Floyd"},
+  {id:"a29", name:"David Bowie"},
+  {id:"a30", name:"Björk"},
+  {id:"a31", name:"The Strokes"},
+  {id:"a32", name:"Solange"},
+  {id:"a33", name:"Steely Dan"},
+  {id:"a34", name:"Aphex Twin"},
+  {id:"a35", name:"Lana Del Rey"},
+  {id:"a36", name:"The Weeknd"},
+  {id:"a37", name:"Erykah Badu"},
+  {id:"a38", name:"Talking Heads"},
+  {id:"a39", name:"Toro y Moi"},
+  {id:"a40", name:"Burial"},
+];
+
+function trackset(n, base){
+  const names = ["Intro","Silhouette","Weightless","Static Bloom","Nightdrive","Amber Room","Slow Static","Glass Water","Faultline","In Reverse","Low Light","Afterglow","Marigold","Undertow","Paper Moon","Velvet Morning","Neon River","Sunday Cinema","No Signal","Blue Motel","Parallel Lines","Soft Landing","Golden Hour","Nocturne","Fever Dream","Half Awake","City Lights","Falling Forward","Satellite","Memory Lane","Cold Coffee","Sunroom","Midnight Radio","Out of Frame","Summer Rain","Second Skin","Daybreak","Quiet Fire","Northbound","Open Window","Slow Motion","Wildflower","Blackout","Dream State","Red Room","Last Train","Side B","Cloud Nine","Home Again","Mirage","Tape Hiss","After Midnight","Small Hours","Crossfade","Echo Chamber","Moonlit","Streetlight","Borrowed Time","Interlude","Finale"];
+  const out=[];
+  for(let i=0;i<n;i++){
+    out.push({id:`${base}-t${i}`, title:names[(i+hashStr(base))%names.length], dur:`${2+((i*37+7)%3)}:${(10+(i*13)%49).toString().padStart(2,'0')}`, avg:(3+((i*17)%20)/10).toFixed(1)});
+  }
+  return out;
+}
+
+const ALBUMS = [
+  {id:"al1", title:"In Rainbows", artist:"Radiohead", artistId:"a1", year:2007, genre:"Alternative", avg:4.6, ratings:127000, reviews:18000},
+  {id:"al2", title:"Blonde", artist:"Frank Ocean", artistId:"a2", year:2016, genre:"R&B", avg:4.7, ratings:210000, reviews:31000},
+  {id:"al3", title:"Currents", artist:"Tame Impala", artistId:"a3", year:2015, genre:"Indie", avg:4.3, ratings:98000, reviews:12000},
+  {id:"al4", title:"Discovery", artist:"Daft Punk", artistId:"a4", year:2001, genre:"Electronic", avg:4.5, ratings:150000, reviews:15000},
+  {id:"al5", title:"IGOR", artist:"Tyler, The Creator", artistId:"a5", year:2019, genre:"Hip-Hop", avg:4.4, ratings:89000, reviews:9800},
+  {id:"al6", title:"Love Deluxe", artist:"Sade", artistId:"a6", year:1992, genre:"Soul", avg:4.5, ratings:41000, reviews:3200},
+  {id:"al7", title:"Music Has the Right to Children", artist:"Boards of Canada", artistId:"a7", year:1998, genre:"Electronic", avg:4.6, ratings:52000, reviews:4100},
+  {id:"al8", title:"6 Feet Beneath the Moon", artist:"King Krule", artistId:"a8", year:2013, genre:"Alternative", avg:4.1, ratings:23000, reviews:2100},
+  {id:"al9", title:"Journey in Satchidananda", artist:"Alice Coltrane", artistId:"a9", year:1971, genre:"Jazz", avg:4.5, ratings:15000, reviews:1400},
+  {id:"al10", title:"Bottomless Pit", artist:"Death Grips", artistId:"a10", year:2016, genre:"Metal", avg:4.0, ratings:19000, reviews:1700},
+  {id:"al11", title:"Be the Cowboy", artist:"Mitski", artistId:"a11", year:2018, genre:"Indie", avg:4.4, ratings:76000, reviews:8600},
+  {id:"al12", title:"Rumours", artist:"Fleetwood Mac", artistId:"a12", year:1977, genre:"Rock", avg:4.7, ratings:180000, reviews:21000},
+  {id:"al13", title:"OK Computer", artist:"Radiohead", artistId:"a1", year:1997, genre:"Alternative", avg:4.8, ratings:220000, reviews:34000},
+  {id:"al14", title:"Channel Orange", artist:"Frank Ocean", artistId:"a2", year:2012, genre:"R&B", avg:4.5, ratings:140000, reviews:16000},
+  {id:"al15", title:"Nurture", artist:"Tame Impala", artistId:"a3", year:2020, genre:"Indie", avg:3.9, ratings:31000, reviews:2900},
+  {id:"al16", title:"Random Access Memories", artist:"Daft Punk", artistId:"a4", year:2013, genre:"Electronic", avg:4.4, ratings:132000, reviews:14000},
+  {id:"al17", title:"To Pimp a Butterfly", artist:"Kendrick Lamar", artistId:"a13", year:2015, genre:"Hip-Hop", avg:4.8, ratings:198000, reviews:26000},
+  {id:"al18", title:"good kid, m.A.A.d city", artist:"Kendrick Lamar", artistId:"a13", year:2012, genre:"Hip-Hop", avg:4.7, ratings:176000, reviews:22000},
+  {id:"al19", title:"SOS", artist:"SZA", artistId:"a14", year:2022, genre:"R&B", avg:4.4, ratings:112000, reviews:14500},
+  {id:"al20", title:"Ctrl", artist:"SZA", artistId:"a14", year:2017, genre:"R&B", avg:4.5, ratings:129000, reviews:15800},
+  {id:"al21", title:"Isolation", artist:"Kali Uchis", artistId:"a15", year:2018, genre:"R&B", avg:4.2, ratings:47000, reviews:5200},
+  {id:"al22", title:"AM", artist:"Arctic Monkeys", artistId:"a16", year:2013, genre:"Rock", avg:4.5, ratings:203000, reviews:24000},
+  {id:"al23", title:"Whatever People Say I Am, That's What I'm Not", artist:"Arctic Monkeys", artistId:"a16", year:2006, genre:"Rock", avg:4.3, ratings:87000, reviews:9100},
+  {id:"al24", title:"Back to Black", artist:"Amy Winehouse", artistId:"a17", year:2006, genre:"Soul", avg:4.6, ratings:151000, reviews:17600},
+  {id:"al25", title:"My Beautiful Dark Twisted Fantasy", artist:"Kanye West", artistId:"a18", year:2010, genre:"Hip-Hop", avg:4.7, ratings:189000, reviews:23400},
+  {id:"al26", title:"Lemonade", artist:"Beyoncé", artistId:"a19", year:2016, genre:"R&B", avg:4.6, ratings:161000, reviews:19200},
+  {id:"al27", title:"Abbey Road", artist:"The Beatles", artistId:"a20", year:1969, genre:"Rock", avg:4.8, ratings:310000, reviews:41000},
+  {id:"al28", title:"Nevermind", artist:"Nirvana", artistId:"a21", year:1991, genre:"Rock", avg:4.5, ratings:220000, reviews:27000},
+  {id:"al29", title:"When We All Fall Asleep, Where Do We Go?", artist:"Billie Eilish", artistId:"a22", year:2019, genre:"Pop", avg:4.3, ratings:167000, reviews:19800},
+  {id:"al30", title:"For Emma, Forever Ago", artist:"Bon Iver", artistId:"a23", year:2007, genre:"Folk", avg:4.4, ratings:69000, reviews:7700},
+  {id:"al31", title:"Modern Vampires of the City", artist:"Vampire Weekend", artistId:"a24", year:2013, genre:"Indie", avg:4.4, ratings:64000, reviews:6900},
+  {id:"al32", title:"Dummy", artist:"Portishead", artistId:"a25", year:1994, genre:"Electronic", avg:4.6, ratings:73000, reviews:8100},
+  {id:"al33", title:"Mezzanine", artist:"Massive Attack", artistId:"a26", year:1998, genre:"Electronic", avg:4.6, ratings:66000, reviews:7300},
+  {id:"al34", title:"Donuts", artist:"J Dilla", artistId:"a27", year:2006, genre:"Hip-Hop", avg:4.7, ratings:58000, reviews:6100},
+  {id:"al35", title:"The Dark Side of the Moon", artist:"Pink Floyd", artistId:"a28", year:1973, genre:"Rock", avg:4.8, ratings:340000, reviews:45000},
+  {id:"al36", title:"Blackstar", artist:"David Bowie", artistId:"a29", year:2016, genre:"Alternative", avg:4.6, ratings:81000, reviews:9600},
+  {id:"al37", title:"Homogenic", artist:"Björk", artistId:"a30", year:1997, genre:"Electronic", avg:4.5, ratings:44000, reviews:4800},
+  {id:"al38", title:"Is This It", artist:"The Strokes", artistId:"a31", year:2001, genre:"Rock", avg:4.4, ratings:129000, reviews:14100},
+  {id:"al39", title:"A Seat at the Table", artist:"Solange", artistId:"a32", year:2016, genre:"R&B", avg:4.5, ratings:57000, reviews:6300},
+  {id:"al40", title:"Aja", artist:"Steely Dan", artistId:"a33", year:1977, genre:"Jazz", avg:4.5, ratings:39000, reviews:3900},
+  {id:"al41", title:"Selected Ambient Works 85-92", artist:"Aphex Twin", artistId:"a34", year:1992, genre:"Electronic", avg:4.7, ratings:52000, reviews:5400},
+  {id:"al42", title:"Norman F***ing Rockwell!", artist:"Lana Del Rey", artistId:"a35", year:2019, genre:"Pop", avg:4.6, ratings:98000, reviews:11700},
+  {id:"al43", title:"House of Balloons", artist:"The Weeknd", artistId:"a36", year:2011, genre:"R&B", avg:4.5, ratings:104000, reviews:12300},
+  {id:"al44", title:"Mama's Gun", artist:"Erykah Badu", artistId:"a37", year:2000, genre:"Soul", avg:4.6, ratings:41000, reviews:4300},
+  {id:"al45", title:"Remain in Light", artist:"Talking Heads", artistId:"a38", year:1980, genre:"Rock", avg:4.6, ratings:60000, reviews:6600},
+  {id:"al46", title:"Causers of This", artist:"Toro y Moi", artistId:"a39", year:2010, genre:"Electronic", avg:4.0, ratings:14000, reviews:1300},
+  {id:"al47", title:"Untrue", artist:"Burial", artistId:"a40", year:2007, genre:"Electronic", avg:4.7, ratings:47000, reviews:4900},
+  {id:"al48", title:"Section.80", artist:"Kendrick Lamar", artistId:"a13", year:2011, genre:"Hip-Hop", avg:4.3, ratings:52000, reviews:5100},
+  {id:"al49", title:"What For?", artist:"Toro y Moi", artistId:"a39", year:2015, genre:"Electronic", avg:3.9, ratings:8200, reviews:760},
+  {id:"al50", title:"Ultraviolence", artist:"Lana Del Rey", artistId:"a35", year:2014, genre:"Pop", avg:4.3, ratings:64000, reviews:6800},
+];
+
+const MORE_ARTISTS = [
+  ["a41","Miles Davis"],["a42","John Coltrane"],["a43","Herbie Hancock"],["a44","Nina Simone"],["a45","Marvin Gaye"],
+  ["a46","Stevie Wonder"],["a47","Prince"],["a48","Michael Jackson"],["a49","The Cure"],["a50","Joy Division"],
+  ["a51","The Smiths"],["a52","Sonic Youth"],["a53","Pixies"],["a54","The Velvet Underground"],["a55","Led Zeppelin"],
+  ["a56","Black Sabbath"],["a57","Metallica"],["a58","Deftones"],["a59","Tool"],["a60","OutKast"],
+  ["a61","A Tribe Called Quest"],["a62","MF DOOM"],["a63","Nas"],["a64","Lauryn Hill"],["a65","D'Angelo"],
+  ["a66","FKA twigs"],["a67","Charli xcx"],["a68","Rosalía"],["a69","Bad Bunny"],["a70","C. Tangana"],
+  ["a71","Soda Stereo"],["a72","Gustavo Cerati"],["a73","Charly García"],["a74","Luis Alberto Spinetta"],["a75","Caetano Veloso"],
+  ["a76","Jorge Ben Jor"],["a77","Buena Vista Social Club"],["a78","Bomba Estéreo"],["a79","Khruangbin"],["a80","Mac DeMarco"]
+].map(([id,name])=>({id,name}));
+ARTISTS.push(...MORE_ARTISTS);
+
+const MORE_ALBUMS = [
+  ["al51","Kind of Blue","Miles Davis","a41",1959,"Jazz",4.9,285000,39000],
+  ["al52","A Love Supreme","John Coltrane","a42",1965,"Jazz",4.9,174000,22000],
+  ["al53","Head Hunters","Herbie Hancock","a43",1973,"Jazz",4.6,72000,7600],
+  ["al54","Pastel Blues","Nina Simone","a44",1965,"Soul",4.7,68000,7200],
+  ["al55","What's Going On","Marvin Gaye","a45",1971,"Soul",4.9,221000,28500],
+  ["al56","Songs in the Key of Life","Stevie Wonder","a46",1976,"Soul",4.9,198000,25100],
+  ["al57","Purple Rain","Prince","a47",1984,"Pop",4.8,214000,27200],
+  ["al58","Thriller","Michael Jackson","a48",1982,"Pop",4.7,349000,41500],
+  ["al59","Disintegration","The Cure","a49",1989,"Alternative",4.8,164000,19800],
+  ["al60","Unknown Pleasures","Joy Division","a50",1979,"Alternative",4.7,147000,17100],
+  ["al61","The Queen Is Dead","The Smiths","a51",1986,"Alternative",4.6,153000,18400],
+  ["al62","Daydream Nation","Sonic Youth","a52",1988,"Alternative",4.6,89000,9400],
+  ["al63","Doolittle","Pixies","a53",1989,"Alternative",4.7,136000,15300],
+  ["al64","The Velvet Underground & Nico","The Velvet Underground","a54",1967,"Rock",4.7,194000,23100],
+  ["al65","Led Zeppelin IV","Led Zeppelin","a55",1971,"Rock",4.8,276000,32800],
+  ["al66","Paranoid","Black Sabbath","a56",1970,"Metal",4.8,206000,23900],
+  ["al67","Master of Puppets","Metallica","a57",1986,"Metal",4.8,222000,26400],
+  ["al68","White Pony","Deftones","a58",2000,"Metal",4.6,124000,14200],
+  ["al69","Lateralus","Tool","a59",2001,"Metal",4.7,118000,13700],
+  ["al70","Aquemini","OutKast","a60",1998,"Hip-Hop",4.8,132000,15800],
+  ["al71","The Low End Theory","A Tribe Called Quest","a61",1991,"Hip-Hop",4.8,141000,16100],
+  ["al72","Madvillainy","MF DOOM","a62",2004,"Hip-Hop",4.8,166000,19700],
+  ["al73","Illmatic","Nas","a63",1994,"Hip-Hop",4.9,243000,30200],
+  ["al74","The Miseducation of Lauryn Hill","Lauryn Hill","a64",1998,"R&B",4.8,197000,23600],
+  ["al75","Voodoo","D'Angelo","a65",2000,"R&B",4.8,82000,9200],
+  ["al76","MAGDALENE","FKA twigs","a66",2019,"Electronic",4.5,76000,8400],
+  ["al77","BRAT","Charli xcx","a67",2024,"Pop",4.5,184000,25700],
+  ["al78","MOTOMAMI","Rosalía","a68",2022,"Pop",4.5,121000,15300],
+  ["al79","Un Verano Sin Ti","Bad Bunny","a69",2022,"Pop",4.4,219000,28100],
+  ["al80","El Madrileño","C. Tangana","a70",2021,"Pop",4.4,66000,7100],
+  ["al81","Canción Animal","Soda Stereo","a71",1990,"Rock",4.8,87000,10200],
+  ["al82","Bocanada","Gustavo Cerati","a72",1999,"Alternative",4.8,91000,11100],
+  ["al83","Clics Modernos","Charly García","a73",1983,"Rock",4.8,72000,8400],
+  ["al84","Artaud","Luis Alberto Spinetta","a74",1973,"Rock",4.9,63000,7900],
+  ["al85","Transa","Caetano Veloso","a75",1972,"Folk",4.7,36000,3500],
+  ["al86","A Tábua de Esmeralda","Jorge Ben Jor","a76",1974,"Soul",4.8,31000,3200],
+  ["al87","Buena Vista Social Club","Buena Vista Social Club","a77",1997,"Folk",4.7,98000,10400],
+  ["al88","Ayo","Bomba Estéreo","a78",2017,"Electronic",4.2,14000,1200],
+  ["al89","Con Todo El Mundo","Khruangbin","a79",2018,"Indie",4.5,57000,5900],
+  ["al90","Salad Days","Mac DeMarco","a80",2014,"Indie",4.4,104000,11800],
+  ["al91","Kid A","Radiohead","a1",2000,"Alternative",4.8,246000,35200],
+  ["al92","The Bends","Radiohead","a1",1995,"Alternative",4.6,173000,21100],
+  ["al93","Flower Boy","Tyler, The Creator","a5",2017,"Hip-Hop",4.5,142000,16700],
+  ["al94","Wolf","Tyler, The Creator","a5",2013,"Hip-Hop",4.2,85000,9100],
+  ["al95","Renaissance","Beyoncé","a19",2022,"R&B",4.6,118000,14900],
+  ["al96","Vespertine","Björk","a30",2001,"Electronic",4.7,83000,9700],
+  ["al97","Heaven or Las Vegas","Cocteau Twins","a81",1990,"Alternative",4.7,98000,11300],
+  ["al98","Grace","Jeff Buckley","a82",1994,"Rock",4.8,186000,22400],
+  ["al99","Carrie & Lowell","Sufjan Stevens","a83",2015,"Folk",4.7,131000,15300],
+  ["al100","Titanic Rising","Weyes Blood","a84",2019,"Indie",4.6,72000,8100]
+].map(([id,title,artist,artistId,year,genre,avg,ratings,reviews])=>({id,title,artist,artistId,year,genre,avg,ratings,reviews}));
+ARTISTS.push({id:"a81",name:"Cocteau Twins"},{id:"a82",name:"Jeff Buckley"},{id:"a83",name:"Sufjan Stevens"},{id:"a84",name:"Weyes Blood"});
+ALBUMS.push(...MORE_ALBUMS);
+
+ALBUMS.forEach(al=>al.tracklist = trackset(6+ (hashStr(al.id)%5), al.id));
+
+const USERS = {
+  me: {id:"me", username:"you", name:"Tu perfil", bio:"Coleccionando discos digitales desde 2022.", followers:486, following:231, favorites:["al1","al2","al12","al7"]},
+  daniel: {id:"daniel", username:"daniel", name:"Daniel Ruiz", bio:"Vinilos, cafe y bajos frecuencias.", followers:812, following:140, favorites:["al13","al9","al10","al6"]},
+  laura: {id:"laura", username:"laura", name:"Laura M.", bio:"Escribiendo sobre discos que me cambiaron el animo.", followers:1240, following:98, favorites:["al2","al11","al14","al8"]},
+  ricardo:{id:"ricardo", username:"ricardo", name:"Ricardo Vega", bio:"Alternative & jazz. 342 discos y contando.", followers:486, following:231, favorites:["al1","al13","al7","al9"]},
+};
+
+let ACTIVITY = [
+  {id:1, type:"logged", user:"daniel", albumId:"al1", rating:5, time:"Hace 12 min"},
+  {id:2, type:"reviewed", user:"laura", albumId:"al2", rating:4.5, time:"Hace 40 min",
+    text:"Un disco que de alguna manera provoca nostalgia por recuerdos que nunca viviste.", likes:142, comments:18, liked:false},
+  {id:3, type:"rated", user:"ricardo", albumId:"al13", rating:5, time:"Hace 2 h"},
+  {id:4, type:"followed", user:"laura", target:"daniel", time:"Hace 3 h"},
+  {id:5, type:"reviewed", user:"ricardo", albumId:"al9", rating:4.5, time:"Hace 5 h",
+    text:"Un arpa entre incienso. Se escucha como se siente flotar.", likes:57, comments:6, liked:false},
+  {id:6, type:"logged", user:"daniel", albumId:"al7", rating:4.5, time:"Ayer"},
+];
+
+let DIARY = [
+  {id:1, albumId:"al1", date:"2026-08-24", rating:5, review:"El disco que suena a lluvia sobre ventana.", fav:"15 Step"},
+  {id:2, albumId:"al2", date:"2026-08-20", rating:4.5, review:"", fav:"Pink + White"},
+  {id:3, albumId:"al13", date:"2026-08-11", rating:4.5, review:"Segunda escucha del año. Sigue incomodando igual de bien.", fav:""},
+  {id:4, albumId:"al13", date:"2026-07-02", rating:4, review:"", fav:""},
+  {id:5, albumId:"al7", date:"2026-06-19", rating:4.5, review:"Para caminar de noche.", fav:""},
+];
+
+let userAlbumRatings = {al1:5, al2:4.5, al13:4.5, al7:4.5, al9:4}; // "me"
+let userTrackRatings = {};
+let likedReviews = new Set();
+let following = new Set(["daniel","laura"]);
+
+/* ---- streak / reward state (resets each session; drives the anchoring loop) ---- */
+let streak = 6;              // consecutive days with activity, walking in
+let xp = 240;                 // lightweight points balance
+let loggedThisSession = false; // one streak bump per session, like a daily check-in
+let sessionStartToastShown = false;
+
+/* ============================= HELPERS ============================= */
+function albumById(id){return ALBUMS.find(a=>a.id===id);}
+function userById(id){return USERS[id];}
+function starsHTML(rating){
+  const full = Math.floor(rating);
+  const half = rating - full >= 0.5;
+  let s = "★".repeat(full);
+  if(half) s += "½";
+  return `<span class="stars">${s} <span style="color:var(--text2)">${rating.toFixed(1)}</span></span>`;
+}
+function fmtCount(n){
+  if(n>=1000) return (n/1000).toFixed(n>=10000?0:1)+"K";
+  return n;
+}
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._h);
+  t._h = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function escapeHTML(s){return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+
+/* ============================= ROUTER ============================= */
+function currentRoute(){
+  const h = location.hash.replace(/^#\//,'') || 'home';
+  return h.split('/');
+}
+function navigate(route){ location.hash = '#/'+route; }
+window.addEventListener('hashchange', render);
+
+function setActiveNav(routeBase){
+  document.querySelectorAll('#navPrimary a, #navMobile a').forEach(a=>{
+    a.classList.toggle('active', a.dataset.route===routeBase || a.dataset.route===routeBase+'/me');
+  });
+}
+
+/* ============================= RENDER: PIECES ============================= */
+function albumCard(al, showQuick){
+  return `<div class="album-card" onclick="navigate('album/${al.id}')">
+    ${coverHTML(al.title)}
+    ${showQuick?`<div class="quick-actions" onclick="event.stopPropagation()">
+      <button class="qa-btn" onclick="openRateModal('${al.id}')">★ Rate</button>
+      <button class="qa-btn" onclick="openLogModal('${al.id}')">＋ Diary</button>
+    </div>`:''}
+    <div class="album-name">${al.title}</div>
+    <div class="album-artist">${al.artist}</div>
+    <div class="album-meta">${starsHTML(al.avg)}</div>
+  </div>`;
+}
+
+function activityCard(act){
+  const u = userById(act.user);
+  if(act.type==="followed"){
+    const t = userById(act.target);
+    return `<div class="compact-activity">
+      ${avatarHTML(u.name)}
+      <div>${userLink(u)} followed ${userLink(t)} <span class="feed-time">· ${act.time}</span></div>
+    </div>`;
+  }
+  const al = albumById(act.albumId);
+  if(act.type==="reviewed"){
+    return `<div class="feed-card">
+      ${avatarHTML(u.name)}
+      <div class="feed-body">
+        <div class="feed-line">${userLink(u)} reviewed <span class="feed-time">· ${act.time}</span></div>
+        <div class="feed-cover-row">
+          <div onclick="navigate('album/${al.id}')" style="cursor:pointer">${coverHTML(al.title)}</div>
+          <div>
+            <div class="feed-album" onclick="navigate('album/${al.id}')" style="cursor:pointer">${al.title}</div>
+            <div class="feed-artist">${al.artist}</div>
+            ${starsHTML(act.rating)}
+          </div>
+        </div>
+        <div class="feed-review">"${escapeHTML(act.text)}"</div>
+        <div class="feed-actions">
+          <span class="${act.liked?'liked':''}" onclick="toggleLike(${act.id})">${act.liked?'♥':'♡'} ${fmtCount(act.likes)}</span>
+          <span onclick="navigate('album/${al.id}')">💬 ${fmtCount(act.comments)}</span>
+        </div>
+      </div>
+    </div>`;
+  }
+  // rated / logged
+  const verb = act.type==="logged" ? "listened to" : "rated";
+  return `<div class="feed-card">
+    ${avatarHTML(u.name)}
+    <div class="feed-body">
+      <div class="feed-line">${userLink(u)} ${verb} <a onclick="navigate('album/${al.id}')" style="cursor:pointer">${al.title}</a> ${starsHTML(act.rating)} <span class="feed-time">· ${act.time}</span></div>
+    </div>
+  </div>`;
+}
+function userLink(u){return `<a onclick="navigate('profile/${u.id}')" style="cursor:pointer;font-weight:700">@${u.username}</a>`;}
+
+function toggleLike(actId){
+  const act = ACTIVITY.find(a=>a.id===actId);
+  if(!act) return;
+  act.liked = !act.liked;
+  act.likes += act.liked ? 1 : -1;
+  render();
+}
+
+/* ============================= VIEWS ============================= */
+function featuredAlbum(){
+  // deterministic "album of the day" pick — stable within a session, changes with the mock date
+  const pool = ALBUMS.filter(a=>a.avg>=4.5);
+  const idx = hashStr(new Date().toDateString()) % pool.length;
+  return pool[idx];
+}
+function view_home(){
+  const popular = [...ALBUMS].sort((a,b)=>b.avg-a.avg || b.ratings-a.ratings).slice(0,14);
+  const feat = featuredAlbum();
+  return `
+    <div class="hero-spot" style="${coverStyle(feat.title)}; background-size:200% 200%;">
+      ${coverHTML(feat.title, '', '-hero')}
+      <div>
+        <div class="hero-eyebrow">ALBUM OF THE DAY</div>
+        <div class="hero-title">${feat.title}</div>
+        <div class="hero-sub">${feat.artist} · ${feat.year} — ${fmtCount(feat.ratings)} personas ya lo calificaron con ${feat.avg.toFixed(1)}★. Escúchalo y déjalo en tu diario.</div>
+        <div class="ah-btns">
+          <button class="btn btn-primary" onclick="navigate('album/${feat.id}')">VER ÁLBUM</button>
+          <button class="btn btn-ghost" onclick="openLogModal('${feat.id}')">＋ LOG</button>
+        </div>
+      </div>
+    </div>
+    <div class="section-head"><div class="section-title serif">Popular this week</div></div>
+    <div class="hscroll">${popular.map(al=>albumCard(al,false)).join('')}</div>
+    <div class="section-head"><div class="section-title serif">Activity</div><div class="section-sub">People you follow</div></div>
+    <div>${ACTIVITY.map(activityCard).join('')}</div>
+  `;
+}
+
+let discoverGenreFilter = null;
+function view_discover(){
+  const trending = [...ALBUMS].sort((a,b)=>b.ratings-a.ratings).slice(0,12);
+  const newReleases = [...ALBUMS].sort((a,b)=>b.year-a.year).slice(0,12);
+  const highestRated = [...ALBUMS].sort((a,b)=>b.avg-a.avg || b.ratings-a.ratings).slice(0,12);
+  const friendsAlbums = ALBUMS.filter(a=>Object.values(USERS).some(u=>following.has(u.id)&&u.favorites.includes(a.id))).slice(0,6);
+  return `
+    <div class="page-title">Discover</div>
+    <div class="catalog-banner"><div><b>A deeper music shelf</b><span>Explore classics, modern essentials, Latin music, jazz, hip-hop, rock, electronic and more.</span></div><div class="catalog-count">${ALBUMS.length} albums</div></div>
+    <div class="section-head"><div class="section-title serif">Trending Albums</div></div>
+    <div class="hscroll">${trending.map(al=>albumCard(al,true)).join('')}</div>
+    <div class="section-head"><div class="section-title serif">Recent Releases</div><div class="section-sub">Expanded demo catalog</div></div>
+    <div class="hscroll">${newReleases.map(al=>albumCard(al,true)).join('')}</div>
+    <div class="section-head"><div class="section-title serif">Highest Rated</div></div>
+    <div class="hscroll">${highestRated.map(al=>albumCard(al,true)).join('')}</div>
+    <div class="section-head"><div class="section-title serif">Popular With Friends</div></div>
+    <div class="hscroll">${(friendsAlbums.length?friendsAlbums:ALBUMS.slice(0,4)).map(al=>albumCard(al,true)).join('')}</div>
+    <div class="section-head"><div class="section-title serif">Explore by Genre</div></div>
+    <div class="genres">${GENRES.map(g=>`<div class="genre-pill" onclick="discoverGenreFilter='${g}'; navigate('search'); document.getElementById('headerSearchInput')&&(document.getElementById('headerSearchInput').value='');">${g}</div>`).join('')}</div>
+  `;
+}
+
+let searchQuery = "";
+let searchTab = "ALL";
+function view_search(){
+  const q = searchQuery.trim().toLowerCase();
+  const albums = q ? ALBUMS.filter(a=>a.title.toLowerCase().includes(q)||a.artist.toLowerCase().includes(q)) : (discoverGenreFilter? ALBUMS.filter(a=>a.genre===discoverGenreFilter): []);
+  const songs = q ? ALBUMS.flatMap(a=>a.tracklist.map(t=>({...t, album:a}))).filter(t=>t.title.toLowerCase().includes(q)) : [];
+  const artists = q ? ARTISTS.filter(a=>a.name.toLowerCase().includes(q)) : [];
+  const users = q ? Object.values(USERS).filter(u=>u.username.toLowerCase().includes(q)||u.name.toLowerCase().includes(q)) : [];
+
+  let resultsHTML = "";
+  if(!q && !discoverGenreFilter){
+    resultsHTML = `<div class="empty"><span class="serif">Search GROOVEBOX</span>Find an album, a song, an artist or a person.</div>`;
+  } else {
+    const showAlbums = searchTab==="ALL"||searchTab==="ALBUMS";
+    const showSongs = searchTab==="ALL"||searchTab==="SONGS";
+    const showArtists = searchTab==="ALL"||searchTab==="ARTISTS";
+    const showUsers = searchTab==="ALL"||searchTab==="USERS";
+    if(showAlbums && albums.length){
+      resultsHTML += `<div class="section-sub" style="margin-bottom:8px;">ALBUMS</div>` + albums.map(a=>`
+        <div class="result-row" onclick="navigate('album/${a.id}')" style="cursor:pointer">
+          ${coverHTML(a.title)}
+          <div><div class="result-title">${a.title}</div><div class="result-sub">${a.artist} · ${a.year}</div></div>
+        </div>`).join('');
+    }
+    if(showSongs && songs.length){
+      resultsHTML += `<div class="section-sub" style="margin:16px 0 8px;">SONGS</div>` + songs.map(t=>`
+        <div class="result-row" onclick="navigate('album/${t.album.id}')" style="cursor:pointer">
+          ${coverHTML(t.album.title)}
+          <div><div class="result-title">${t.title}</div><div class="result-sub">${t.album.artist} · ${t.album.title}</div></div>
+        </div>`).join('');
+    }
+    if(showArtists && artists.length){
+      resultsHTML += `<div class="section-sub" style="margin:16px 0 8px;">ARTISTS</div>` + artists.map(a=>`
+        <div class="result-row" onclick="navigate('artist/${a.id}')" style="cursor:pointer">
+          ${avatarHTML(a.name)}
+          <div><div class="result-title">${a.name}</div><div class="result-sub">Artist</div></div>
+        </div>`).join('');
+    }
+    if(showUsers && users.length){
+      resultsHTML += `<div class="section-sub" style="margin:16px 0 8px;">USERS</div>` + users.map(u=>`
+        <div class="result-row">
+          <div onclick="navigate('profile/${u.id}')" style="cursor:pointer; display:flex; align-items:center; gap:14px; flex:1; min-width:0;">
+            ${avatarHTML(u.name)}
+            <div><div class="result-title">@${u.username}</div><div class="result-sub">${u.name}</div></div>
+          </div>
+          ${u.id!=='me'?followButton(u.id):''}
+        </div>`).join('');
+    }
+    if(!resultsHTML) resultsHTML = `<div class="empty"><span class="serif">No results</span>Try another title, artist or username.</div>`;
+  }
+
+  return `
+    <div class="page-title">Search</div>
+    <input class="search-hero-input" id="searchHeroInput" placeholder="Search albums, songs or artists..." value="${escapeHTML(searchQuery)}" oninput="searchQuery=this.value; renderSearchResultsOnly();">
+    <div class="tab-row">
+      ${["ALL","ALBUMS","SONGS","ARTISTS","USERS"].map(t=>`<div class="tab ${searchTab===t?'active':''}" onclick="searchTab='${t}'; render();">${t}</div>`).join('')}
+    </div>
+    <div id="searchResults">${resultsHTML}</div>
+  `;
+}
+function renderSearchResultsOnly(){
+  // lightweight refresh that keeps input focus while typing
+  const focused = document.activeElement === document.getElementById('searchHeroInput');
+  render();
+  if(focused){
+    const el = document.getElementById('searchHeroInput');
+    if(el){ el.focus(); el.selectionStart = el.selectionEnd = el.value.length; }
+  }
+}
+
+function followButton(userId){
+  const isFollowing = following.has(userId);
+  return `<button class="btn btn-sm btn-follow ${isFollowing?'following':''}" onclick="toggleFollow(event,'${userId}')">${isFollowing?'FOLLOWING ✓':'FOLLOW'}</button>`;
+}
+function toggleFollow(e, userId){
+  e.stopPropagation();
+  if(following.has(userId)){ following.delete(userId); showToast('Unfollowed'); }
+  else { following.add(userId); showToast('Now following @'+USERS[userId].username); }
+  render();
+}
+
+function view_album(id){
+  const al = albumById(id);
+  if(!al) return `<div class="empty">Album not found.</div>`;
+  const myRating = userAlbumRatings[al.id];
+  const isFav = USERS.me.favorites.includes(al.id);
+  const reviews = ACTIVITY.filter(a=>a.type==="reviewed" && a.albumId===al.id);
+  return `
+    <div class="breadcrumb" onclick="history.back()">← Back</div>
+    <div class="album-hero">
+      ${coverHTML(al.title)}
+      <div>
+        <div class="page-title">${al.title}</div>
+        <div class="ah-artist"><a onclick="navigate('artist/${al.artistId}')" style="cursor:pointer">${al.artist}</a></div>
+        <div class="ah-meta">${al.year} · ${al.genre}</div>
+        <div class="ah-rating"><span class="num">★ ${al.avg.toFixed(1)}</span>${myRating?`<span style="color:var(--text2); font-size:12px;">Your rating: ${myRating.toFixed(1)}</span>`:''}</div>
+        <div class="ah-counts">${fmtCount(al.ratings)} ratings · ${fmtCount(al.reviews)} reviews</div>
+        <div class="ah-btns">
+          <button class="btn btn-primary" onclick="openRateModal('${al.id}')">★ RATE</button>
+          <button class="btn btn-ghost" onclick="openLogModal('${al.id}')">＋ LOG</button>
+          <button class="btn ${isFav?'btn-gold':'btn-ghost'}" onclick="toggleFavorite('${al.id}')">${isFav?'♥':'♡'} FAVORITE</button>
+          <button class="btn btn-ghost" onclick="showToast('Opening in Spotify…')">▶ OPEN IN SPOTIFY</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-head"><div class="section-title serif">Tracklist</div></div>
+    <div class="tracklist">
+      ${al.tracklist.map((t,i)=>{
+        const mine = userTrackRatings[t.id];
+        return `<div class="track-row">
+          <div class="track-num">${(i+1).toString().padStart(2,'0')}</div>
+          <div class="track-title">${t.title}</div>
+          <div class="track-dur">${t.dur}</div>
+          <div class="stars" style="width:70px; text-align:right;">★ ${t.avg}</div>
+          <div class="track-my-rating">${mine?('You: '+mine.toFixed(1)):''}</div>
+          <div class="track-actions">
+            <button class="qa-btn" onclick="openTrackRateModal('${al.id}','${t.id}')">★ RATE</button>
+            <button class="qa-btn" onclick="showToast('Opening in Spotify…')">▶</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div class="section-head"><div class="section-title serif">Popular Reviews</div></div>
+    <div class="review-cta" onclick="openLogModal('${al.id}', null, true)">
+      <div class="rc-icon">✎</div>
+      <div class="rc-text"><b>Write a review for ${al.title}</b><span>Share what this album made you feel — it'll post to your diary and to the feed.</span></div>
+    </div>
+    ${reviews.length? reviews.map(r=>{
+      const u = userById(r.user);
+      return `<div class="review-card">
+        <div class="review-head">${avatarHTML(u.name)}<div><div class="review-name">@${u.username}</div><div class="review-date">${r.time}</div></div></div>
+        ${starsHTML(r.rating)}
+        <div class="feed-review" style="margin-top:8px;">"${escapeHTML(r.text)}"</div>
+        <div class="review-actions">
+          <span class="${r.liked?'liked':''}" onclick="toggleLike(${r.id})">${r.liked?'♥':'♡'} LIKE (${fmtCount(r.likes)})</span>
+          <span onclick="showToast('Opening comments…')">💬 COMMENT (${fmtCount(r.comments)})</span>
+          <span onclick="showToast('Link copied')">SHARE</span>
+        </div>
+      </div>`;
+    }).join('') : `<div class="empty" style="padding:30px 0;">No reviews yet. Be the first to write one.</div>`}
+  `;
+}
+
+function toggleFavorite(albumId){
+  const favs = USERS.me.favorites;
+  const idx = favs.indexOf(albumId);
+  if(idx>=0){ favs.splice(idx,1); showToast('Removed from favorites'); }
+  else {
+    if(favs.length>=4){ showToast('You already have 4 favorite albums'); return; }
+    favs.push(albumId); showToast('Added to favorites');
+  }
+  render();
+}
+
+function view_artist(id){
+  const artist = ARTISTS.find(a=>a.id===id);
+  if(!artist) return `<div class="empty">Artist not found.</div>`;
+  const discog = ALBUMS.filter(a=>a.artistId===id).sort((a,b)=>a.year-b.year);
+  const popular = [...discog].sort((a,b)=>b.ratings-a.ratings);
+  const rated = [...discog].sort((a,b)=>b.avg-a.avg);
+  return `
+    <div class="breadcrumb" onclick="history.back()">← Back</div>
+    <div style="display:flex; align-items:center; gap:18px; margin-bottom:8px;">
+      <div class="avatar" style="width:72px;height:72px;font-size:26px;${avatarStyle(artist.name)}">${artist.name[0]}</div>
+      <div>
+        <div class="page-title" style="margin-bottom:2px;">${artist.name}</div>
+        <div class="section-sub">Artist</div>
+      </div>
+    </div>
+    <button class="btn btn-ghost" onclick="showToast('Opening in Spotify…')" style="margin-bottom:10px;">▶ OPEN IN SPOTIFY</button>
+    <div class="section-head"><div class="section-title serif">Popular Albums</div></div>
+    <div class="hscroll">${popular.slice(0,6).map(al=>albumCard(al,false)).join('')}</div>
+    <div class="section-head"><div class="section-title serif">Discography</div></div>
+    <div class="grid">${discog.map(al=>albumCard(al,false)).join('')}</div>
+    <div class="section-head"><div class="section-title serif">Highest Rated</div></div>
+    <div class="hscroll">${rated.slice(0,6).map(al=>albumCard(al,false)).join('')}</div>
+  `;
+}
+
+let diaryFilter = {year:'ALL'};
+function view_diary(){
+  const years = [...new Set(DIARY.map(d=>d.date.slice(0,4)))].sort().reverse();
+  let entries = [...DIARY].sort((a,b)=>b.date.localeCompare(a.date));
+  if(diaryFilter.year!=='ALL') entries = entries.filter(d=>d.date.slice(0,4)===diaryFilter.year);
+
+  const groups = {};
+  entries.forEach(e=>{
+    const d = new Date(e.date+"T00:00");
+    const key = d.toLocaleDateString('en-US',{month:'long', year:'numeric'}).toUpperCase();
+    (groups[key]=groups[key]||[]).push(e);
+  });
+
+  return `
+    <div class="page-title">My Diary</div>
+    <div class="filter-row">
+      <div class="filter-chip ${diaryFilter.year==='ALL'?'active':''}" onclick="diaryFilter.year='ALL'; render();">ALL YEARS</div>
+      ${years.map(y=>`<div class="filter-chip ${diaryFilter.year===y?'active':''}" onclick="diaryFilter.year='${y}'; render();">${y}</div>`).join('')}
+    </div>
+    ${entries.length===0?`<div class="empty"><span class="serif">Your diary is empty.</span>Time to spin something.</div>`:''}
+    ${Object.entries(groups).map(([month, list])=>`
+      <div class="diary-group">
+        <div class="diary-month">${month}</div>
+        ${list.map(e=>{
+          const al = albumById(e.albumId);
+          const day = e.date.slice(8,10);
+          return `<div class="diary-row">
+            <div class="diary-day">${day}</div>
+            <div onclick="navigate('album/${al.id}')" style="cursor:pointer">${coverHTML(al.title)}</div>
+            <div class="diary-info">
+              <div class="feed-album">${al.title}</div>
+              <div class="feed-artist">${al.artist}</div>
+              ${starsHTML(e.rating)}
+              ${e.fav?`<div class="diary-fav">Favorite track: ${e.fav}</div>`:''}
+            </div>
+            <div class="diary-actions">
+              <span onclick="openLogModal('${al.id}', ${e.id})">EDIT</span>
+              <span onclick="deleteDiaryEntry(${e.id})">DELETE</span>
+              ${e.review?`<span onclick="showToast('Opening review…')">VIEW REVIEW</span>`:''}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    `).join('')}
+  `;
+}
+function deleteDiaryEntry(id){
+  DIARY = DIARY.filter(d=>d.id!==id);
+  showToast('Entry deleted');
+  render();
+}
+
+function view_profile(id){
+  const u = userById(id==='me'?'me':id) || USERS.me;
+  const isMe = u.id==='me';
+  const albumsLogged = isMe ? new Set(DIARY.map(d=>d.albumId)).size : 342;
+  const reviewsCount = isMe ? ACTIVITY.filter(a=>a.type==='reviewed'&&a.user==='me').length + 1 : 118;
+  const avgRating = isMe ? (Object.values(userAlbumRatings).reduce((s,v)=>s+v,0)/(Object.values(userAlbumRatings).length||1)) : 4.1;
+  const topGenre = "Alternative";
+  const recentActs = ACTIVITY.filter(a=>a.user===u.id && a.type!=='followed').slice(0,4);
+  return `
+    <div class="profile-head">
+      <div class="avatar" style="width:88px;height:88px;font-size:30px;${avatarStyle(u.name)}">${u.name[0]}</div>
+      <div>
+        <div class="profile-name">${u.name}</div>
+        <div class="profile-handle">@${u.username}</div>
+        <div class="profile-bio">${u.bio}</div>
+        <div class="profile-stats">
+          <div><b>${albumsLogged}</b><span>Albums</span></div>
+          <div><b>${reviewsCount}</b><span>Reviews</span></div>
+          <div><b>${u.followers}</b><span>Followers</span></div>
+          <div><b>${u.following}</b><span>Following</span></div>
+          ${isMe?`<div><b style="color:var(--gold)">🔥 ${streak}</b><span>Day streak</span></div><div><b style="color:var(--gold)">${xp}</b><span>XP</span></div>`:''}
+        </div>
+      </div>
+      ${!isMe? followButton(u.id) : ''}
+    </div>
+
+    <div class="section-head"><div class="section-title serif">Favorite Albums</div>${isMe?'<div class="section-sub" style="cursor:pointer" onclick="showToast(\'Drag to reorder — demo only\')">EDIT FAVORITES</div>':''}</div>
+    <div class="favorites-grid">
+      ${u.favorites.map(id=>albumCard(albumById(id), false)).join('') || `<div class="empty">No favorites yet.</div>`}
+    </div>
+
+    <div class="section-head"><div class="section-title serif">Recent Activity</div></div>
+    ${recentActs.length? recentActs.map(a=>{
+      const al = albumById(a.albumId);
+      return `<div class="compact-activity">
+        ${coverHTML(al.title, '')}
+        <div style="width:44px;height:44px;"></div>
+        <div style="flex:1; margin-left:-40px; padding-left:14px;">
+          <div class="feed-album">${al.title} — ${al.artist}</div>
+          ${starsHTML(a.rating)}
+        </div>
+      </div>`;
+    }).join('') : `<div class="empty" style="padding:20px 0;">No recent activity.</div>`}
+
+    <div class="section-head"><div class="section-title serif">Your Music</div></div>
+    <div class="stat-cards">
+      <div class="stat-card"><div class="num">${albumsLogged}</div><div class="lab">Albums logged</div></div>
+      <div class="stat-card"><div class="num">${reviewsCount}</div><div class="lab">Reviews</div></div>
+      <div class="stat-card"><div class="num">${avgRating.toFixed(1)}</div><div class="lab">Average rating</div></div>
+      <div class="stat-card"><div class="num" style="font-size:16px;">${topGenre}</div><div class="lab">Most listened genre</div></div>
+    </div>
+  `;
+}
+
+/* ============================= MODALS ============================= */
+function closeModal(){ document.getElementById('modalRoot').innerHTML=''; }
+
+function openRateModal(albumId){
+  const al = albumById(albumId);
+  const current = userAlbumRatings[albumId] || 0;
+  document.getElementById('modalRoot').innerHTML = `
+    <div class="overlay" onclick="if(event.target===this) closeModal()">
+      <div class="modal">
+        <div class="modal-title serif">Rate ${al.title}</div>
+        <div style="display:flex; align-items:center; gap:16px; margin-bottom:20px;">
+          ${coverHTML(al.title)}
+          <div>
+            <div style="font-weight:700;">${al.title}</div>
+            <div class="section-sub">${al.artist}</div>
+          </div>
+        </div>
+        <div class="field">
+          <label>YOUR RATING</label>
+          ${halfStarSelector('rateModalStars', current)}
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="submitRate('${albumId}')">SAVE RATING</button>
+        </div>
+      </div>
+    </div>`;
+}
+function submitRate(albumId){
+  const val = window._pendingRating || userAlbumRatings[albumId] || 0;
+  if(!val){ showToast('Select a rating first'); return; }
+  userAlbumRatings[albumId] = val;
+  const al = albumById(albumId);
+  ACTIVITY.unshift({id:Date.now(), type:"rated", user:"me", albumId, rating:val, time:"Just now"});
+  closeModal();
+  showToast(`Rated ${al.title} ${val.toFixed(1)}★`);
+  registerActivityForReward('rate');
+  render();
+}
+
+function openTrackRateModal(albumId, trackId){
+  const al = albumById(albumId);
+  const t = al.tracklist.find(t=>t.id===trackId);
+  const current = userTrackRatings[trackId] || 0;
+  document.getElementById('modalRoot').innerHTML = `
+    <div class="overlay" onclick="if(event.target===this) closeModal()">
+      <div class="modal">
+        <div class="modal-title serif">Rate ${t.title}</div>
+        <div class="section-sub" style="margin-bottom:16px;">${al.title} — ${al.artist}</div>
+        <div class="field">
+          <label>YOUR RATING</label>
+          ${halfStarSelector('rateModalStars', current)}
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="submitTrackRate('${trackId}','${t.title.replace(/'/g,"\\'")}')">SAVE RATING</button>
+        </div>
+      </div>
+    </div>`;
+}
+function submitTrackRate(trackId, title){
+  const val = window._pendingRating || userTrackRatings[trackId] || 0;
+  if(!val){ showToast('Select a rating first'); return; }
+  userTrackRatings[trackId] = val;
+  closeModal();
+  showToast(`Rated "${title}" ${val.toFixed(1)}★`);
+  registerActivityForReward('rate');
+  render();
+}
+
+function halfStarSelector(name, current){
+  window._pendingRating = current;
+  let stars = '';
+  for(let i=1;i<=5;i++){
+    const filled = current>=i;
+    const half = !filled && current>=i-0.5;
+    stars += `<span style="position:relative; display:inline-block;">
+      <span class="star-glyph" style="color:var(--border)">★</span>
+      <span style="position:absolute; left:0; top:0; overflow:hidden; width:${filled?'100%':half?'50%':'0%'}; color:var(--gold);">★</span>
+      <span onclick="setHalfStar(event, ${i})" data-half="1" style="position:absolute; left:0; top:0; width:50%; height:100%; cursor:pointer;"></span>
+      <span onclick="setHalfStar(event, ${i})" data-half="0" style="position:absolute; right:0; top:0; width:50%; height:100%; cursor:pointer;"></span>
+    </span>`;
+  }
+  return `<div class="star-select" id="starSelectWrap" style="font-size:30px;">${stars}</div>
+    <div id="ratingValueLabel" class="section-sub" style="margin-top:8px;">${current? current.toFixed(1)+' / 5':'Tap a star to rate'}</div>`;
+}
+function setHalfStar(e, starIndex){
+  const isLeftHalf = e.target.dataset.half==='1';
+  const val = isLeftHalf ? starIndex-0.5 : starIndex;
+  window._pendingRating = val;
+  const wrap = document.getElementById('starSelectWrap');
+  const spans = wrap.querySelectorAll(':scope > span');
+  spans.forEach((sp, idx)=>{
+    const i = idx+1;
+    const fillSpan = sp.children[1];
+    if(val>=i) fillSpan.style.width='100%';
+    else if(val>=i-0.5) fillSpan.style.width='50%';
+    else fillSpan.style.width='0%';
+  });
+  document.getElementById('ratingValueLabel').textContent = val.toFixed(1)+' / 5';
+}
+
+function openLogModal(albumId, editEntryId, focusReview){
+  const al = albumById(albumId);
+  const editing = editEntryId ? DIARY.find(d=>d.id===editEntryId) : null;
+  const today = new Date().toISOString().slice(0,10);
+  const current = editing ? editing.rating : (userAlbumRatings[albumId]||0);
+  document.getElementById('modalRoot').innerHTML = `
+    <div class="overlay" onclick="if(event.target===this) closeModal()">
+      <div class="modal">
+        <div class="modal-title serif">${focusReview?'Write a review':'Log this album'}</div>
+        <div style="display:flex; align-items:center; gap:16px; margin-bottom:18px;">
+          ${coverHTML(al.title)}
+          <div><div style="font-weight:700;">${al.title}</div><div class="section-sub">${al.artist}</div></div>
+        </div>
+        <div class="field">
+          <label>DATE</label>
+          <input type="date" id="logDate" value="${editing?editing.date:today}">
+        </div>
+        <div class="field">
+          <label>RATING</label>
+          ${halfStarSelector('logStars', current)}
+        </div>
+        <div class="field">
+          <label>REVIEW</label>
+          <textarea id="logReview" placeholder="Write something about this album...">${editing?escapeHTML(editing.review):''}</textarea>
+        </div>
+        <div class="field">
+          <label>FAVORITE TRACK</label>
+          <select id="logFavTrack">
+            <option value="">Select track…</option>
+            ${al.tracklist.map(t=>`<option value="${escapeHTML(t.title)}" ${editing&&editing.fav===t.title?'selected':''}>${t.title}</option>`).join('')}
+          </select>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="logFavAlbum" ${USERS.me.favorites.includes(albumId)?'checked':''}>
+          <label for="logFavAlbum" style="margin:0; font-size:13px; color:var(--text);">♡ Add to favorites</label>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="submitLog('${albumId}', ${editing?editing.id:'null'})">SAVE TO DIARY</button>
+        </div>
+      </div>
+    </div>`;
+  if(focusReview){
+    setTimeout(()=>{
+      const ta = document.getElementById('logReview');
+      if(ta){ ta.focus(); ta.scrollIntoView({block:'center', behavior:'smooth'}); }
+    }, 60);
+  }
+}
+function submitLog(albumId, editId){
+  const date = document.getElementById('logDate').value;
+  const rating = window._pendingRating || 0;
+  const review = document.getElementById('logReview').value.trim();
+  const fav = document.getElementById('logFavTrack').value;
+  const addFav = document.getElementById('logFavAlbum').checked;
+  if(!date){ showToast('Pick a date'); return; }
+  if(!rating){ showToast('Add a rating'); return; }
+
+  if(editId){
+    const entry = DIARY.find(d=>d.id===editId);
+    Object.assign(entry, {date, rating, review, fav});
+  } else {
+    DIARY.unshift({id:Date.now(), albumId, date, rating, review, fav});
+  }
+  userAlbumRatings[albumId] = rating;
+
+  if(addFav && !USERS.me.favorites.includes(albumId)){
+    if(USERS.me.favorites.length<4) USERS.me.favorites.push(albumId);
+  } else if(!addFav){
+    USERS.me.favorites = USERS.me.favorites.filter(id=>id!==albumId);
+  }
+
+  if(review){
+    ACTIVITY.unshift({id:Date.now()+1, type:"reviewed", user:"me", albumId, rating, time:"Just now", text:review, likes:0, comments:0, liked:false});
+  } else {
+    ACTIVITY.unshift({id:Date.now()+1, type:"logged", user:"me", albumId, rating, time:"Just now"});
+  }
+  closeModal();
+  showToast('Added to your diary ✓');
+  registerActivityForReward('log');
+  render();
+}
+
+/* ============================= STREAK / REWARD SYSTEM ============================= */
+function updateStreakUI(){
+  ['streakCountDesktop','streakCountMobile'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.textContent = streak;
+  });
+}
+function registerActivityForReward(kind){
+  // one streak bump per session keeps the "logged in today" feeling honest,
+  // while every action still earns XP so each log/rating feels rewarded.
+  let gained = kind==='log' ? 15 : 6;
+  let msg = kind==='log' ? `+${gained} XP por registrar en tu diario` : `+${gained} XP por calificar`;
+  if(!loggedThisSession){
+    loggedThisSession = true;
+    streak += 1;
+    gained += 10;
+    msg = `🔥 Racha de ${streak} días — +${gained} XP`;
+    if(streak>0 && streak%7===0){
+      msg = `🔥 ¡${streak} días seguidos! Racha de una semana — +${gained} XP`;
+    }
+  }
+  xp += gained;
+  updateStreakUI();
+  setTimeout(()=>showToast(msg), kind==='log'?650:0);
+}
+
+/* ============================= ONBOARDING TUTORIAL ============================= */
+let tutorialSeen = false;
+const TUTORIAL_STEPS = [
+  {icon:"🎧", title:"Bienvenido a GROOVEBOX", text:"Este es tu diario musical: aquí registras lo que escuchas, lo calificas y ves qué escuchan las personas que sigues. Un recorrido rápido de 5 pasos y listo."},
+  {icon:"🧭", title:"Navegación principal", text:"Home, Discover, Diary, Search y Profile son tus cinco secciones. En escritorio están arriba; en el celular, abajo. El logo siempre te regresa a Home."},
+  {icon:"★", title:"Calificar es el gesto base", text:"En cualquier portada o en la página de un álbum, el botón ★ RATE abre un selector de medias estrellas (0.5 a 5). Puedes calificar álbumes y también canciones sueltas en el tracklist."},
+  {icon:"＋", title:"Registrar en tu diario", text:"＋ LOG abre el modal para guardar la fecha en que escuchaste el álbum, tu reseña y tu canción favorita. Puedes registrar el mismo álbum varias veces para ver cómo cambia tu gusto."},
+  {icon:"🔥", title:"Tu racha te acompaña", text:"Cada vez que entras y registras algo, tu racha 🔥 (arriba a la derecha) sube y ganas puntos XP. Es tu manera de ver tu constancia como oyente a lo largo del tiempo."},
+];
+let tutorialStepIdx = 0;
+function maybeStartTutorial(){
+  if(tutorialSeen) return;
+  tutorialStepIdx = 0;
+  renderTutorialStep();
+}
+function renderTutorialStep(){
+  const step = TUTORIAL_STEPS[tutorialStepIdx];
+  const isLast = tutorialStepIdx === TUTORIAL_STEPS.length-1;
+  document.getElementById('modalRoot').innerHTML = `
+    <div class="tut-overlay">
+      <div class="tut-card">
+        <div class="tut-step-icon">${step.icon}</div>
+        <div class="tut-title serif">${step.title}</div>
+        <div class="tut-text">${step.text}</div>
+        <div class="tut-dots">${TUTORIAL_STEPS.map((_,i)=>`<span class="${i===tutorialStepIdx?'on':''}"></span>`).join('')}</div>
+        <div class="tut-actions">
+          <span class="tut-count">Paso ${tutorialStepIdx+1} de ${TUTORIAL_STEPS.length}</span>
+          <button class="btn btn-primary" onclick="advanceTutorial()">${isLast?'EMPEZAR':'SIGUIENTE'}</button>
+        </div>
+      </div>
+    </div>`;
+}
+function advanceTutorial(){
+  if(tutorialStepIdx < TUTORIAL_STEPS.length-1){
+    tutorialStepIdx++;
+    renderTutorialStep();
+  } else {
+    tutorialSeen = true;
+    document.getElementById('modalRoot').innerHTML = '';
+    showToast('Tutorial completado — ¡a construir tu historial musical!');
+  }
+}
+
+function openQuickReview(){
+  const [route, param] = currentRoute();
+  if(route==='album' && param){ openLogModal(param, null, true); return; }
+  navigate('search');
+  showToast('Busca un álbum para reseñarlo');
+}
+
+/* ============================= MAIN RENDER ============================= */
+function render(){
+  const [route, param, param2] = currentRoute();
+  const viewEl = document.getElementById('view');
+  let base = route;
+  document.getElementById('headerAvatar').style.cssText = avatarStyle('Tu perfil');
+  document.getElementById('headerAvatar').textContent = 'T';
+  updateStreakUI();
+
+  switch(route){
+    case 'home': viewEl.innerHTML = view_home(); break;
+    case 'discover': viewEl.innerHTML = view_discover(); break;
+    case 'search': viewEl.innerHTML = view_search(); break;
+    case 'diary': viewEl.innerHTML = view_diary(); break;
+    case 'album': viewEl.innerHTML = view_album(param); break;
+    case 'artist': viewEl.innerHTML = view_artist(param); break;
+    case 'profile': viewEl.innerHTML = view_profile(param); break;
+    default: viewEl.innerHTML = view_home(); base='home';
+  }
+  setActiveNav(base);
+  window.scrollTo({top:0});
+}
+
+document.querySelectorAll('#navPrimary a, #navMobile a').forEach(a=>{
+  a.addEventListener('click', (e)=>{ e.preventDefault(); navigate(a.dataset.route); });
+});
+document.getElementById('headerSearchInput').addEventListener('focus', ()=>navigate('search'));
+document.getElementById('headerSearchInput').addEventListener('input', (e)=>{
+  searchQuery = e.target.value;
+  if(currentRoute()[0]!=='search') navigate('search');
+  else renderSearchResultsOnly();
+});
+
+render();
+maybeStartTutorial();
+</script>
+</body>
+</html>
